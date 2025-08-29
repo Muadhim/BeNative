@@ -1,4 +1,0 @@
-whisper
-transformers
-torch
-coqui-tts

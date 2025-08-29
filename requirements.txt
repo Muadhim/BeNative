@@ -1,0 +1,7 @@
+openai-whisper
+transformers
+torch
+pyttsx3
+PyQt5
+sounddevice
+soundfile

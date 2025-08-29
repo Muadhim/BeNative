@@ -1,13 +1,10 @@
 set -e
 
-# masuk ke folder core
-cd core
-
 # kalau belum ada venv, bikin
 if [ ! -d "venv" ]; then
     echo "🔧 Membuat virtualenv dengan Python 3.11..."
-    pyenv install -s 3.11.9
-    pyenv local 3.11.9
+    pyenv install -s 3.10.14
+    pyenv local 3.10.14
     python -m venv venv
 fi
 
