@@ -24,6 +24,8 @@ def callback(indata, frames, time, status):
     q.put(indata.copy())
 
 class SpeechApp(QWidget):
+    text_input = ''
+    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Whisper Demo")
@@ -42,10 +44,14 @@ class SpeechApp(QWidget):
         self.btn_play = QPushButton("🔊 Play Text")
         self.btn_play.clicked.connect(self.play_text)
 
+        self.btn_check_voice = QPushButton("Check voice")
+        self.btn_check_voice.clicked.connect(self.check_voice)
+
         layout.addWidget(self.label)
         layout.addWidget(self.text_area)
         layout.addWidget(self.btn_record)
         layout.addWidget(self.btn_play)
+        layout.addWidget(self.btn_check_voice)
 
         self.setLayout(layout)
 
@@ -62,13 +68,22 @@ class SpeechApp(QWidget):
             text = result["text"]
 
         self.text_area.append(f"📝 Hasil: {text}")
+        self.text_input = text
         print("Transcribed:", text)
 
     def play_text(self):
-        text = self.text_area.toPlainText().strip()
+        text = self.text_input
         if not text:
-            self.text_area.append("⚠️ Tidak ada teks untuk dibacakan")
+            self.text_input.append("⚠️ Tidak ada teks untuk dibacakan")
             return
         self.text_area.append("🔊 Membacakan teks...")
         engine.say(text)
         engine.runAndWait()
+    
+    def check_voice(self):
+        voices = engine.getProperty("voices")
+        for voice in voices:
+            self.text_area.append(f"voice: {voice} voice_id: {voice.id}")
+            engine.say("Hello World")
+            engine.runAndWait()
+            engine.stop()
