@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>BeNative</title>
+  </head>
+  <body>
+    <h2>BeNative IPC Demo</h2>
+    <button id="sendBtn">Send Echo</button>
+    <pre id="output"></pre>
+
+    <script>
+      const btn = document.getElementById("sendBtn");
+      const output = document.getElementById("output");
+
+      btn.addEventListener("click", () => {
+        output.textContent += "start";
+        window.beNative.sendMessage({
+          action: "echo",
+          payload: "Hello from Electron",
+        });
+      });
+
+      window.beNative.onMessage((data) => {
+        console.log("message", data);
+        output.textContent += JSON.stringify(data) + "\n";
+      });
+    </script>
+  </body>
+</html>
