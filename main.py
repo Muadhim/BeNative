@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from ui.main_window import SpeechApp
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
 
     window = SpeechApp()
@@ -16,3 +16,6 @@ if __name__ == "__main__":
     
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()

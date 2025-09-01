@@ -1,89 +1,40 @@
-import sys
-import queue
-import tempfile
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
-import whisper
-import pyttsx3
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel
-
-# Buffer audio untuk rekaman
-q = queue.Queue()
-
-# Load model whisper
-model = whisper.load_model("base")  # bisa "small", "medium", "large"
-
-# Engine TTS
-engine = pyttsx3.init()
-
-def callback(indata, frames, time, status):
-    """Callback untuk sounddevice"""
-    if status:
-        print(status, file=sys.stderr)
-    q.put(indata.copy())
+import threading
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
+from core.conversation import conversation_loop
 
 class SpeechApp(QWidget):
-    text_input = ''
-    
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Whisper Demo")
-        self.setGeometry(200, 200, 400, 300)
+        self.setWindowTitle("BeNative")
+        self.setGeometry(200, 200, 300, 200)
 
         layout = QVBoxLayout()
 
-        self.label = QLabel("Klik tombol untuk bicara...")
-
-        self.text_area = QTextEdit()
-        self.text_area.setReadOnly(True)
-
-        self.btn_record = QPushButton("🎤 Rekam dan Transkrip")
-        self.btn_record.clicked.connect(self.record_and_transcribe)
-
-        self.btn_play = QPushButton("🔊 Play Text")
-        self.btn_play.clicked.connect(self.play_text)
-
-        self.btn_check_voice = QPushButton("Check voice")
-        self.btn_check_voice.clicked.connect(self.check_voice)
-
+        self.label = QLabel("BeNative - English Practice")
         layout.addWidget(self.label)
-        layout.addWidget(self.text_area)
-        layout.addWidget(self.btn_record)
-        layout.addWidget(self.btn_play)
-        layout.addWidget(self.btn_check_voice)
+
+        self.start_btn = QPushButton("Start Conversation")
+        self.start_btn.clicked.connect(self.start_conversation)
+        layout.addWidget(self.start_btn)
+
+        self.stop_btn = QPushButton("Stop Conversation")
+        self.stop_btn.clicked.connect(self.stop_conversation)
+        layout.addWidget(self.stop_btn)
 
         self.setLayout(layout)
 
-    def record_and_transcribe(self):
-        duration = 5  # detik
-        samplerate = 16000
-        self.text_area.append("⏺️ Merekam audio...")
-        recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype="float32")
-        sd.wait()
+        self.stop_event = None
+        self.thread = None
 
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
-            sf.write(tmpfile.name, recording, samplerate)
-            result = model.transcribe(tmpfile.name, fp16=False)
-            text = result["text"]
+    def start_conversation(self):
+        if not self.thread or not self.thread.is_alive():
+            self.stop_event = threading.Event()
+            self.thread = threading.Thread(target=conversation_loop, args=(self.stop_event,))
+            self.thread.start()
+            self.label.setText("Conversation running...")
 
-        self.text_area.append(f"📝 Hasil: {text}")
-        self.text_input = text
-        print("Transcribed:", text)
-
-    def play_text(self):
-        text = self.text_input
-        if not text:
-            self.text_input.append("⚠️ Tidak ada teks untuk dibacakan")
-            return
-        self.text_area.append("🔊 Membacakan teks...")
-        engine.say(text)
-        engine.runAndWait()
-    
-    def check_voice(self):
-        voices = engine.getProperty("voices")
-        for voice in voices:
-            self.text_area.append(f"voice: {voice} voice_id: {voice.id}")
-            engine.say("Hello World")
-            engine.runAndWait()
-            engine.stop()
+    def stop_conversation(self):
+        if self.stop_event:
+            self.stop_event.set()
+            self.thread.join()
+            self.label.setText("Conversation stopped.")
