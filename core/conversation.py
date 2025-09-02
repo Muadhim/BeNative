@@ -1,6 +1,7 @@
 import whisper
-from core.speech import record_audio, speak_text, detect_language
+from core.speech import record_audio, detect_language
 from core.ai import ask_ollama
+from core.tts import speak_text
 
 # Load whisper sekali
 whisper_model = whisper.load_model("base")

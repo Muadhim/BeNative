@@ -1,6 +1,7 @@
 import subprocess
 
-def ask_ollama(prompt: str, model="llama3.2"):
+def ask_ollama(prompt: str, model="llama3.1"):
+    print('asking ollama...')
     try:
         result = subprocess.run(
             ["ollama", "run", model, prompt],
